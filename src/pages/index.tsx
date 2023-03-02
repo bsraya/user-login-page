@@ -1,11 +1,30 @@
 import Head from 'next/head'
-import Image from 'next/image'
 import { Inter } from 'next/font/google'
-import styles from '@/styles/Home.module.css'
+import { Formik, Field, Form } from 'formik'
+import {
+  Flex,
+  Input,
+  Button,
+  Heading,
+  Container,
+  FormControl,
+  FormLabel,
+  FormErrorMessage,
+} from '@chakra-ui/react'
 
 const inter = Inter({ subsets: ['latin'] })
 
 export default function Home() {
+  function validateEmail(email: string) {
+    let error: string | undefined
+    if (!email) {
+      error = 'Required'
+    } else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(email)) {
+      error = 'Invalid email address'
+    }
+    return error
+  }
+
   return (
     <>
       <Head>
@@ -14,109 +33,43 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <main className={styles.main}>
-        <div className={styles.description}>
-          <p>
-            Get started by editing&nbsp;
-            <code className={styles.code}>src/pages/index.tsx</code>
-          </p>
-          <div>
-            <a
-              href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
+      <main className={inter.className}>
+        <Flex width={"100vw"} height={"100vh"} alignContent={"center"} justifyContent={"center"}>
+          <Container maxWidth="container.md" marginTop="auto" marginBottom="auto" justifyContent={"center"} alignContent={"center"} textAlign={"center"}>
+            <Heading as="h1" size="2xl" marginBottom="1rem">Login Page</Heading>
+            <Formik
+              initialValues={{ email: '' }}
+              onSubmit={(values, actions) => {
+                setTimeout(() => {
+                  alert(JSON.stringify(values, null, 2))
+                  actions.setSubmitting(false)
+                }, 1000)
+              }}
             >
-              By{' '}
-              <Image
-                src="/vercel.svg"
-                alt="Vercel Logo"
-                className={styles.vercelLogo}
-                width={100}
-                height={24}
-                priority
-              />
-            </a>
-          </div>
-        </div>
-
-        <div className={styles.center}>
-          <Image
-            className={styles.logo}
-            src="/next.svg"
-            alt="Next.js Logo"
-            width={180}
-            height={37}
-            priority
-          />
-          <div className={styles.thirteen}>
-            <Image
-              src="/thirteen.svg"
-              alt="13"
-              width={40}
-              height={31}
-              priority
-            />
-          </div>
-        </div>
-
-        <div className={styles.grid}>
-          <a
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2 className={inter.className}>
-              Docs <span>-&gt;</span>
-            </h2>
-            <p className={inter.className}>
-              Find in-depth information about Next.js features and&nbsp;API.
-            </p>
-          </a>
-
-          <a
-            href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2 className={inter.className}>
-              Learn <span>-&gt;</span>
-            </h2>
-            <p className={inter.className}>
-              Learn about Next.js in an interactive course with&nbsp;quizzes!
-            </p>
-          </a>
-
-          <a
-            href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2 className={inter.className}>
-              Templates <span>-&gt;</span>
-            </h2>
-            <p className={inter.className}>
-              Discover and deploy boilerplate example Next.js&nbsp;projects.
-            </p>
-          </a>
-
-          <a
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2 className={inter.className}>
-              Deploy <span>-&gt;</span>
-            </h2>
-            <p className={inter.className}>
-              Instantly deploy your Next.js site to a shareable URL
-              with&nbsp;Vercel.
-            </p>
-          </a>
-        </div>
+              {(props) => (
+                <Form style={{ border: '1px solid #e2e8f0', padding: '1rem' }}>
+                  <Field name='email' validate={validateEmail}>
+                    {({ field, form }: { field: any, form: any }) => (
+                      <FormControl isInvalid={form.errors.email && form.touched.email}>
+                        <FormLabel htmlFor='email'>Email</FormLabel>
+                        <Input {...field} id='email' placeholder='email' />
+                        <FormErrorMessage>{form.errors.email}</FormErrorMessage>
+                      </FormControl>
+                    )}
+                  </Field>
+                  <Button
+                    mt={4}
+                    colorScheme='teal'
+                    isLoading={props.isSubmitting}
+                    type='submit'
+                  >
+                    Submit
+                  </Button>
+                </Form>
+              )}
+              </Formik>
+            </Container>
+          </Flex>
       </main>
     </>
   )
