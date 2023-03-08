@@ -1,9 +1,10 @@
 from sqlmodel import Field, SQLModel, create_engine
+from typing import Optional
 
 engine = create_engine("sqlite:///database.db", echo=True)
 
 class User(SQLModel, table=True):
-    id: int = Field(default=None, primary_key=True)
+    id: Optional[int] = Field(default=None, primary_key=True)
     firstName: str
     lastName: str
     email: str
@@ -12,6 +13,3 @@ class User(SQLModel, table=True):
 
 def create_tables():
     SQLModel.metadata.create_all(engine)
-
-def close_connection():
-    engine.dispose()
