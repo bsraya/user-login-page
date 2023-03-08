@@ -12,7 +12,8 @@ import {
   FormLabel,
   FormErrorMessage,
   InputGroup,
-  InputRightElement
+  InputRightElement,
+  useToast
 } from '@chakra-ui/react'
 import * as Yup from 'yup';
 
@@ -37,6 +38,7 @@ const SignupSchema = Yup.object().shape({
 });
 
 export default function Home() {
+  const Toast = useToast()
   const [show, setShow] = React.useState(false)
   const showPassword = () => setShow(!show)
   return (
@@ -55,10 +57,38 @@ export default function Home() {
               initialValues={{ firstName: '', lastName: '', email: '', password: '' }}
               validationSchema={SignupSchema}
               onSubmit={(values, actions) => {
-                setTimeout(() => {
-                  alert(JSON.stringify(values, null, 2))
-                  actions.setSubmitting(false)
-                }, 1000)
+                // send data to localhost:5000/signup
+                fetch('http://localhost:5000/signup', {
+                  method: 'POST',
+                  headers: {
+                    "Content-Type": "application/json",
+                    "Access-Control-Allow-Origin": "*",
+                  },
+                  body: JSON.stringify(values)
+                })
+                  .then(res => res.json())
+                  .then(data => {
+                    setTimeout(() => {  
+                      if (data.status_code === 200) {
+                        Toast({
+                          title: "Success",
+                          description: "User registered successfully",
+                          status: "success",
+                          duration: 5000,
+                          isClosable: true,
+                        })
+                      } else {
+                        Toast({
+                          title: "Error",
+                          description: "Something went wrong",
+                          status: "error",
+                          duration: 5000,
+                          isClosable: true,
+                        })
+                      }
+                      actions.setSubmitting(false)
+                    }, 1000)
+                  })
               }}
             >
               {(props) => (
