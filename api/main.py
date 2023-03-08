@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from logging.config import dictConfig
 from fastapi.middleware.cors import CORSMiddleware
+import schema as schema
 
 dictConfig(config.LOGGING)
 log = logging.getLogger("uvicorn")
@@ -27,11 +28,11 @@ class User(BaseModel):
 
 @app.on_event("startup")
 async def on_startup():
-    log.info("API starting up")
+    schema.create_tables()
 
 @app.on_event("shutdown")
 async def on_shutdown():
-    log.info("API shutting down")
+    schema.close_connection()
 
 @app.post("/signup")
 def signin_user(user: User):
