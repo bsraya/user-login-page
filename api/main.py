@@ -1,15 +1,16 @@
 import uvicorn
 import logging
 import config
+import hashlib
+import secrets
+import datetime
+import schema as schema
 from fastapi import FastAPI
 from pydantic import BaseModel
-from logging.config import dictConfig
-from fastapi.middleware.cors import CORSMiddleware
-import schema as schema
 from sqlmodel import Session, select
+from logging.config import dictConfig
 from fastapi.responses import JSONResponse
-import secrets
-import hashlib
+from fastapi.middleware.cors import CORSMiddleware
 
 dictConfig(config.LOGGING)
 log = logging.getLogger("uvicorn")
@@ -24,6 +25,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 class User(BaseModel):
     firstName: str
     lastName: str
@@ -36,29 +38,50 @@ async def on_startup():
     schema.create_tables()
 
 
-@app.post("/signup", response_model=User)
+@app.post("/signup", response_model=User, status_code=201)
 def signin_user(user: User):
     with Session(schema.engine) as session:
         db_user = session.exec(
-            select(schema.User)
-            .where(schema.User.email == user.email)
+            select(schema.User).where(schema.User.email == user.email)
         ).first()
 
         if db_user:
-            return JSONResponse(status_code=400, content={"message": "User with this email already exists!"})
-        
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "status_code": 400,
+                    "message": "User with this email already exists!",
+                },
+            )
+
+        expires = datetime.datetime.now() + datetime.timedelta(days=1)
+        session_token = secrets.token_hex(16)
+
         new_user = schema.User(
-            firstName=user.firstName, 
-            lastName=user.lastName, 
-            email=user.email, 
-            password=user.password,
-            salt=secrets.token_hex(16)
+            first_name=user.firstName,
+            last_name=user.lastName,
+            email=user.email,
+            hashed_password=hashlib.sha256(
+                f"{user.password}{schema.salt}".encode()
+            ).hexdigest(),
+            session=session_token,
         )
-        print(new_user)
+
         session.add(new_user)
         session.commit()
         session.refresh(new_user)
-        return JSONResponse(status_code=200, content={"message": "User created successfully!"})
-    
+
+        response = JSONResponse(
+            status_code=201,
+            content={"status_code": 201, "message": "User created successfully!"},
+        )
+        response.set_cookie(
+            key="session_token",
+            value=new_user.session,
+            expires=expires,
+        )
+        return response
+
+
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", reload=True, port=5000)
