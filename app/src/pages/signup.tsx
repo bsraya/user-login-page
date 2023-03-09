@@ -14,6 +14,7 @@ import {
     useToast
 } from '@chakra-ui/react'
 import * as Yup from 'yup';
+import { useRouter } from "next/router";
 import Layout from '../../components/layout';
 
 const SignupSchema = Yup.object().shape({
@@ -36,6 +37,7 @@ const SignupSchema = Yup.object().shape({
 
 export default function SignUp() {
     const Toast = useToast()
+    const router = useRouter();
     const [show, setShow] = React.useState(false)
     const showPassword = () => setShow(!show)
     return (
@@ -46,39 +48,40 @@ export default function SignUp() {
                     initialValues={{ firstName: '', lastName: '', email: '', password: '' }}
                     validationSchema={SignupSchema}
                     onSubmit={async (values, actions) => {
-                    await fetch('http://localhost:5000/signup', {
-                        method: 'POST',
-                        headers: {
-                        "Content-Type": "application/json",
-                        "Access-Control-Allow-Origin": "*",
-                        },
-                        body: JSON.stringify(values)
-                    })
-                        .then(res => res.json())
-                        .then(data => {
-                        setTimeout(() => {
-                            if (data.status_code === 400) {
-                            Toast({
-                                title: "Error",
-                                description: data.message,
-                                status: "error",
-                                duration: 5000,
-                                isClosable: true,
-                            })
-                            }
-                            
-                            if (data.status_code === 201) {
-                            Toast({
-                                title: "Success",
-                                description: data.message,
-                                status: "success",
-                                duration: 5000,
-                                isClosable: true,
-                            })
-                            }
+                        await fetch('http://localhost:5000/signup', {
+                            method: 'POST',
+                            headers: {
+                            "Content-Type": "application/json",
+                            "Access-Control-Allow-Origin": "*",
+                            },
+                            body: JSON.stringify(values)
+                        })
+                            .then(res => res.json())
+                            .then(data => {
+                            setTimeout(() => {
+                                if (data.status_code === 400) {
+                                    Toast({
+                                        title: "Error",
+                                        description: data.message,
+                                        status: "error",
+                                        duration: 5000,
+                                        isClosable: true,
+                                    })
+                                }
+                                
+                                if (data.status_code === 201) {
+                                    Toast({
+                                        title: "Success",
+                                        description: data.message,
+                                        status: "success",
+                                        duration: 5000,
+                                        isClosable: true,
+                                    })
+                                    router.push("/")
+                                }
 
-                            actions.setSubmitting(false)
-                        }, 1000)
+                                actions.setSubmitting(false)
+                            }, 1000)
                         })
                     }}
                 >

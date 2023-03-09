@@ -1,30 +1,22 @@
 import React from 'react';
 import { Formik, Field, Form } from 'formik';
 import {
-    Flex,
     Input,
     Button,
     Heading,
+    useToast,
     Container,
-    FormControl,
     FormLabel,
-    FormErrorMessage,
     InputGroup,
+    FormControl,
+    FormErrorMessage,
     InputRightElement,
-    useToast
 } from '@chakra-ui/react'
 import * as Yup from 'yup';
+import { useRouter } from "next/router";
 import Layout from '../../components/layout';
 
 const SigninSchema = Yup.object().shape({
-    firstName: Yup.string()
-        .min(2, "First name is too short")
-        .max(50, "First name is too long")
-        .required("Required"),
-    lastName: Yup.string()
-        .min(2, "Last name is too short")
-        .max(50, "Last name is too long")
-        .required("Required"),
     email: Yup.string()
         .email("Invalid email")
         .required("Required"),
@@ -36,49 +28,66 @@ const SigninSchema = Yup.object().shape({
 
 export default function SignIn() {
     const Toast = useToast()
+    const router = useRouter();
     const [show, setShow] = React.useState(false)
     const showPassword = () => setShow(!show)
     return (
         <Layout>
             <Container maxWidth="container.md" marginTop="auto" marginBottom="auto" justifyContent={"center"} alignContent={"center"} textAlign={"center"}>
-            <Heading as="h1" marginBottom="1rem">Sign Up</Heading>
+            <Heading as="h1" marginBottom="1rem">Sign In</Heading>
             <Formik
                 initialValues={{ email: '', password: '' }}
                 validationSchema={SigninSchema}
                 onSubmit={async (values, actions) => {
-                await fetch('http://localhost:5000/signup', {
-                    method: 'POST',
-                    headers: {
-                    "Content-Type": "application/json",
-                    "Access-Control-Allow-Origin": "*",
-                    },
-                    body: JSON.stringify(values)
-                })
-                    .then(res => res.json())
-                    .then(data => {
-                    setTimeout(() => {
-                        if (data.status_code === 400) {
-                        Toast({
-                            title: "Error",
-                            description: data.message,
-                            status: "error",
-                            duration: 5000,
-                            isClosable: true,
-                        })
-                        }
-                        
-                        if (data.status_code === 201) {
-                        Toast({
-                            title: "Success",
-                            description: data.message,
-                            status: "success",
-                            duration: 5000,
-                            isClosable: true,
-                        })
-                        }
+                    await fetch('http://localhost:5000/signin', {
+                        method: 'POST',
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Access-Control-Allow-Origin": "*",
+                        },
+                        body: JSON.stringify(values)
+                    })
+                        .then(res => res.json())
+                        .then(data => {
+                            setTimeout(() => {
+                                if (data.status_code === 401) {
+                                    Toast({
+                                        title: "Error",
+                                        description: data.message,
+                                        status: "error",
+                                        duration: 5000,
+                                        isClosable: true,
+                                    })
+                                }
 
-                        actions.setSubmitting(false)
-                    }, 1000)
+                                if (data.status_code === 404) {
+                                    Toast({
+                                        title: "Error",
+                                        description: data.message,
+                                        status: "error",
+                                        duration: 5000,
+                                        isClosable: true,
+                                    })
+                                }
+                                
+                                if (data.status_code === 201) {
+                                    Toast({
+                                        title: "Success",
+                                        description: data.message,
+                                        status: "success",
+                                        duration: 5000,
+                                        isClosable: true,
+                                    })
+                                    // redirect and pass token
+                                    router.push({
+                                        pathname: '/',
+                                        // get session-token from the header
+                                        query: { token: data?.headers?.get('session_token') },
+                                    })
+                                }
+
+                                actions.setSubmitting(false)
+                            }, 1000)
                     })
                 }}
             >

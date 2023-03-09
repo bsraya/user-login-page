@@ -1,9 +1,11 @@
-import { Button, Heading, Container } from '@chakra-ui/react';
 import React from 'react';
-import Layout from '../../components/layout';
 import Link from 'next/link';
+import Layout from '../../components/layout';
+import { Button, Heading, Container } from '@chakra-ui/react';
+import Cookies from 'universal-cookie';
 
-export default function Home() {
+export default function Home({ props }: any) {
+  console.log(props)
   return (
     <Layout>
       <Container>
@@ -20,8 +22,7 @@ export default function Home() {
             Sign Up
           </Button>
         </Link>
-      </Container>
-      
+      </Container>  
     </Layout>
   )
 }
