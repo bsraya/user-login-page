@@ -1,9 +1,9 @@
 from sqlmodel import Field, SQLModel, create_engine
 from typing import Optional
-import secrets
+import bcrypt
 
 engine = create_engine("sqlite:///database.db", echo=True)
-salt = secrets.token_hex(16)
+salt = bcrypt.gensalt()
 
 
 class User(SQLModel, table=True):

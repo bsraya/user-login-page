@@ -1,27 +1,21 @@
-import secrets
-import hashlib
+import bcrypt
 
-def hash_password(password, salt):
-    salted_password = password + salt
-    hashed_password = hashlib.sha256(salted_password.encode()).hexdigest()
-    return hashed_password
+# def hash_password(password, salt):
+#     salted_password = password + salt
+#     hashed_password = hashlib.sha256(salted_password.encode()).hexdigest()
+#     return hashed_password
+
 
 password = "burungkuntul"
 
 # generate a salt
-salt = secrets.token_hex(16)
+salt = bcrypt.gensalt()
 
-# salt the password
-salted_password = password + salt
-
-# hash the salted password using the `secret` builtin library
-hashed_password = hashlib.sha256(salted_password.encode()).hexdigest()
+# hash the salted password
+hashed_password = bcrypt.hashpw(password.encode(), salt)
 
 print(f"Salt: {salt}")
-print(f"Salted password: {salted_password}")
 print(f"Hashed password: {hashed_password}")
 
-if secrets.compare_digest(hashed_password, hash_password("kontol", salt)):
+if bcrypt.checkpw("password".encode(), hashed_password):
     print("Passwords match")
-else:
-    print("Passwords do not match")
