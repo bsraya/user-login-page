@@ -11,8 +11,6 @@ from sqlmodel import Session, select
 from logging.config import dictConfig
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse
 
 dictConfig(config.LOGGING)
 log = logging.getLogger("uvicorn")
@@ -40,13 +38,32 @@ class UserLogin(BaseModel):
     password: str
 
 
+class UserInfo(BaseModel):
+    firstName: str
+    lastName: str
+    email: str
+
+
 @app.on_event("startup")
 async def on_startup():
     schema.create_tables()
 
 
+@app.get("/token/{session_token}", status_code=200)
+def get_user(session_token: str):
+    with Session(schema.engine) as session:
+        user = session.exec(
+            select(schema.User).where(schema.User.session == session_token)
+        ).first()   
+
+        return JSONResponse(
+            status_code=200,
+            content={"firstName": user.firstName, "lastName": user.lastName, "email": user.email},
+        )
+
+
 # create user login endpoint
-@app.post("/signin", response_model=UserLogin, status_code=201)
+@app.post("/signin", response_model=UserLogin, status_code=200)
 def signin_user(user: UserLogin):
     with Session(schema.engine) as session:
         existing_user = session.exec(
@@ -80,8 +97,12 @@ def signin_user(user: UserLogin):
         session.refresh(existing_user)
 
         response = JSONResponse(
-            status_code=201,
-            content={"status_code": 201, "message": "User logged in successfully!"},
+            status_code=200,
+            content={
+                "status_code": 200, 
+                "message": "User logged in successfully!",
+                "session_token": session_token,
+            },
         )
         response.set_cookie(
             key="session_token",
@@ -107,18 +128,11 @@ def signup_user(user: User):
                 },
             )
 
-        # expires should be in UTC
-        expires = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(
-            days=1
-        )
-        session_token = secrets.token_hex(16)
-
         new_user = schema.User(
             first_name=user.firstName,
             last_name=user.lastName,
             email=user.email,
-            hashed_password=bcrypt.hashpw(user.password.encode(), schema.salt),
-            session=session_token,
+            hashed_password=bcrypt.hashpw(user.password.encode(), schema.salt)
         )
 
         session.add(new_user)
@@ -128,9 +142,6 @@ def signup_user(user: User):
         response = JSONResponse(
             status_code=201,
             content={"status_code": 201, "message": "User created successfully!"},
-        )
-        response.set_cookie(
-            key="session_token", value=new_user.session, expires=expires
         )
         return response
 
