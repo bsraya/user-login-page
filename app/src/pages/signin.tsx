@@ -70,7 +70,7 @@ export default function SignIn() {
                                     })
                                 }
                                 
-                                if (data.status_code === 201) {
+                                if (data.status_code === 200) {
                                     Toast({
                                         title: "Success",
                                         description: data.message,
@@ -78,14 +78,9 @@ export default function SignIn() {
                                         duration: 5000,
                                         isClosable: true,
                                     })
-                                    // redirect and pass token
-                                    router.push({
-                                        pathname: '/',
-                                        // get session-token from the header
-                                        query: { token: data?.headers?.get('session_token') },
-                                    })
+                                    localStorage.setItem('session_token', data.session_token)
+                                    router.push('/user')
                                 }
-
                                 actions.setSubmitting(false)
                             }, 1000)
                     })

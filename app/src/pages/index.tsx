@@ -2,10 +2,9 @@ import React from 'react';
 import Link from 'next/link';
 import Layout from '../../components/layout';
 import { Button, Heading, Container } from '@chakra-ui/react';
-import Cookies from 'universal-cookie';
 
-export default function Home({ props }: any) {
-  console.log(props)
+export default function Home({ user }: any) {
+  console.log(user);
   return (
     <Layout>
       <Container>
